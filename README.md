@@ -103,6 +103,6 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Contact
 
-Your Name - [@yourtwitter](https://twitter.com/yourtwitter) - email@example.com
+Your Name - [@MeetGangani](https://www.linkedin.com/in/meet-gangani-166750254/) - meetgangani56@gmail.com
 
-Project Link: [https://github.com/yourusername/online-examination-system](https://github.com/yourusername/online-examination-system)
+Project Link: [https://github.com/MeetGangani/KryptoExam](https://github.com/MeetGangani/KryptoExam)

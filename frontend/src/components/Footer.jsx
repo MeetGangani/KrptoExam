@@ -25,16 +25,20 @@ const Footer = () => {
                 NexusEdu
               </span>
             </Link>
-            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-              Transforming education through blockchain technology. Secure, transparent, 
-              and verifiable certifications for the future of learning.
+            <p className={`mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              A secure online examination platform designed to simplify assessment processes
+              for educational institutions and students.
             </p>
             <div className="flex space-x-4">
               {[FaTwitter, FaGithub, FaLinkedin].map((Icon, index) => (
                 <a
                   key={index}
                   href="#"
-                  className="text-gray-400 hover:text-violet-400 transition-colors duration-300"
+                  className={`${
+                    isDarkMode 
+                      ? 'text-gray-400 hover:text-violet-400' 
+                      : 'text-gray-600 hover:text-violet-600'
+                  } transition-colors duration-300`}
                 >
                   <Icon className="h-6 w-6" />
                 </a>
@@ -44,13 +48,21 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold mb-6">Quick Links</h3>
+            <h3 className={`font-semibold mb-6 ${
+              isDarkMode ? 'text-white' : 'text-gray-900'
+            }`}>
+              Quick Links
+            </h3>
             <ul className="space-y-4">
-              {['About', 'Features', 'Pricing', 'Blog'].map((item, index) => (
+              {['About', 'Contact'].map((item, index) => (
                 <li key={index}>
                   <Link
                     to={`/${item.toLowerCase()}`}
-                    className="text-gray-400 hover:text-violet-400 transition-colors duration-300"
+                    className={`${
+                      isDarkMode 
+                        ? 'text-gray-400 hover:text-violet-400' 
+                        : 'text-gray-600 hover:text-violet-600'
+                    } transition-colors duration-300`}
                   >
                     {item}
                   </Link>
@@ -61,13 +73,21 @@ const Footer = () => {
 
           {/* Legal */}
           <div>
-            <h3 className="text-white font-semibold mb-6">Legal</h3>
+            <h3 className={`font-semibold mb-6 ${
+              isDarkMode ? 'text-white' : 'text-gray-900'
+            }`}>
+              Legal
+            </h3>
             <ul className="space-y-4">
-              {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((item, index) => (
+              {['Privacy Policy', 'Terms of Service'].map((item, index) => (
                 <li key={index}>
                   <Link
                     to={`/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="text-gray-400 hover:text-violet-400 transition-colors duration-300"
+                    className={`${
+                      isDarkMode 
+                        ? 'text-gray-400 hover:text-violet-400' 
+                        : 'text-gray-600 hover:text-violet-600'
+                    } transition-colors duration-300`}
                   >
                     {item}
                   </Link>
@@ -78,12 +98,16 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-gray-800">
+        <div className={`mt-12 pt-8 border-t ${
+          isDarkMode ? 'border-gray-800' : 'border-gray-200'
+        }`}>
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">
+            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
               © {new Date().getFullYear()} NexusEdu. All rights reserved.
             </p>
-            <p className="text-gray-400 text-sm flex items-center mt-4 md:mt-0">
+            <p className={`${
+              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+            } flex items-center mt-4 md:mt-0`}>
               Made with <FaHeart className="text-violet-500 mx-1" /> by NexusEdu Team
             </p>
           </div>

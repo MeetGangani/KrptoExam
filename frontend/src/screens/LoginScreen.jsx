@@ -80,7 +80,7 @@ const LoginScreen = () => {
           }`}>
             Welcome Back
           </h2>
-          <p className={isDarkMode ? 'mt-2 text-gray-400' : 'mt-2 text-gray-600'}>
+          <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-3 mb-4`}>
             Sign in to your account
           </p>
         </div>
@@ -173,7 +173,7 @@ const LoginScreen = () => {
 
         {isLoading && <Loader />}
 
-        <div className="text-center">
+        <div className="text-center mt-6">
           <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
             New to NexusEdu?{' '}
             <Link to="/register" className="font-medium text-violet-600 hover:text-violet-500 transition-colors">

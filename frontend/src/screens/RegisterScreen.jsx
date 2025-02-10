@@ -47,7 +47,7 @@ const RegisterScreen = () => {
   return (
     <div className={`min-h-screen flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8 relative ${
       isDarkMode ? 'bg-[#0A0F1C]' : 'bg-gray-50'
-    }`}> q
+    }`}> 
       {/* Background Effects - Update z-index to ensure it stays behind the form */}
       <div className="absolute inset-0 z-0">
         <div className={`absolute inset-0 bg-gradient-to-br ${

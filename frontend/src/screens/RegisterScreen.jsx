@@ -16,6 +16,16 @@ const RegisterScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    requirements: {
+      length: false,
+      uppercase: false,
+      lowercase: false,
+      number: false,
+      special: false
+    }
+  });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -29,6 +39,42 @@ const RegisterScreen = () => {
       navigate('/');
     }
   }, [navigate, userInfo]);
+
+  const checkPasswordStrength = (password) => {
+    const requirements = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    // Calculate score based on met requirements
+    const score = Object.values(requirements).filter(Boolean).length;
+
+    setPasswordStrength({ score, requirements });
+  };
+
+  const getStrengthColor = () => {
+    switch (passwordStrength.score) {
+      case 0:
+      case 1:
+        return 'bg-red-500';
+      case 2:
+      case 3:
+        return 'bg-yellow-500';
+      case 4:
+      case 5:
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-200';
+    }
+  };
+
+  // Update password strength when password changes
+  useEffect(() => {
+    checkPasswordStrength(password);
+  }, [password]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -211,25 +257,63 @@ const RegisterScreen = () => {
                 }`}>
                   Password
                 </label>
-                <div className="mt-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaLock className={`h-5 w-5 ${
-                      isDarkMode ? 'text-gray-500' : 'text-gray-400'
-                    }`} />
+                <div className="mt-1 space-y-2">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FaLock className={`h-5 w-5 ${
+                        isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                      }`} />
+                    </div>
+                    <input
+                      id="password"
+                      type="password"
+                      required
+                      className={`block w-full pl-10 pr-3 py-2 border ${
+                        isDarkMode 
+                          ? 'border-gray-700 bg-gray-800/50 text-white placeholder-gray-500' 
+                          : 'border-gray-300 bg-white/50 text-gray-900 placeholder-gray-400'
+                      } rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent`}
+                      placeholder="Create a password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        checkPasswordStrength(e.target.value);
+                      }}
+                    />
                   </div>
-                  <input
-                    id="password"
-                    type="password"
-                    required
-                    className={`block w-full pl-10 pr-3 py-2 border ${
-                      isDarkMode 
-                        ? 'border-gray-700 bg-gray-800/50 text-white placeholder-gray-500' 
-                        : 'border-gray-300 bg-white/50 text-gray-900 placeholder-gray-400'
-                    } rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent`}
-                    placeholder="Create a password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+
+                  {/* Password Strength Indicator */}
+                  {password && (
+                    <div className="space-y-2">
+                      <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${getStrengthColor()} transition-all duration-300`}
+                          style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                        />
+                      </div>
+
+                      {/* Password Requirements */}
+                      <div className={`text-xs space-y-1 ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        <p className={passwordStrength.requirements.length ? 'text-green-500' : ''}>
+                          ✓ At least 8 characters
+                        </p>
+                        <p className={passwordStrength.requirements.uppercase ? 'text-green-500' : ''}>
+                          ✓ At least one uppercase letter
+                        </p>
+                        <p className={passwordStrength.requirements.lowercase ? 'text-green-500' : ''}>
+                          ✓ At least one lowercase letter
+                        </p>
+                        <p className={passwordStrength.requirements.number ? 'text-green-500' : ''}>
+                          ✓ At least one number
+                        </p>
+                        <p className={passwordStrength.requirements.special ? 'text-green-500' : ''}>
+                          ✓ At least one special character
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

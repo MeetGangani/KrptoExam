@@ -10,6 +10,7 @@ import fileRoutes from './routes/fileRoutes.js';
 import fileUploadRoutes from './routes/fileUploadRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import examRoutes from './routes/examRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
 
 const port = process.env.PORT || 5000;
 
@@ -27,6 +28,7 @@ app.use('/api/files', fileRoutes);
 app.use('/api/upload', fileUploadRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/exams', examRoutes);
+app.use('/api/contact', contactRoutes);
 
 if (process.env.NODE_ENV === 'production') {
   const __dirname = path.resolve();

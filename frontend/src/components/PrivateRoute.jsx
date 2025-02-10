@@ -1,8 +1,18 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-const PrivateRoute = () => {
+const PrivateRoute = ({ allowedRoles }) => {
   const { userInfo } = useSelector((state) => state.auth);
-  return userInfo ? <Outlet /> : <Navigate to='/login' replace />;
+
+  if (!userInfo) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(userInfo.userType)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
 };
+
 export default PrivateRoute;

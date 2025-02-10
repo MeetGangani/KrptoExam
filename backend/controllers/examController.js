@@ -3,7 +3,11 @@ import FileRequest from '../models/fileRequestModel.js';
 import ExamResponse from '../models/examResponseModel.js';
 import { decryptFromIPFS } from '../utils/encryptionUtils.js';
 import sendEmail from '../utils/emailUtils.js';
+import { examResultTemplate } from '../utils/emailTemplates.js';
 import axios from 'axios';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('examController');
 
 // Get available exams for students
 const getAvailableExams = asyncHandler(async (req, res) => {
@@ -22,20 +26,22 @@ const getAvailableExams = asyncHandler(async (req, res) => {
 
     res.json(availableExams);
   } catch (error) {
-    console.error('Error fetching available exams:', error);
+    logger.error('Error fetching available exams:', error);
     res.status(500);
     throw new Error('Failed to fetch available exams');
   }
 });
 
-// Start exam with IPFS hash
+// Enhanced exam start with validation
 const startExam = asyncHandler(async (req, res) => {
   const { ipfsHash } = req.body;
 
   try {
+    logger.info(`Starting exam with IPFS hash: ${ipfsHash}`);
+
     // Find the exam using IPFS hash
     const exam = await FileRequest.findOne({
-      ipfsHash: ipfsHash,
+      ipfsHash,
       status: 'approved'
     });
 
@@ -56,7 +62,7 @@ const startExam = asyncHandler(async (req, res) => {
     }
 
     try {
-      console.log('Fetching exam data from IPFS...');
+      logger.info('Fetching exam data from IPFS...');
       // Fetch encrypted data from IPFS
       const response = await axios.get(`https://gateway.pinata.cloud/ipfs/${ipfsHash}`);
       
@@ -64,7 +70,7 @@ const startExam = asyncHandler(async (req, res) => {
         throw new Error('Invalid data format from IPFS');
       }
 
-      console.log('Decrypting exam data...');
+      logger.info('Decrypting exam data...');
       // Decrypt the exam data using the stored IPFS encryption key
       const decryptedData = decryptFromIPFS(response.data, exam.ipfsEncryptionKey);
       
@@ -77,7 +83,7 @@ const startExam = asyncHandler(async (req, res) => {
         throw new Error('Invalid questions format');
       }
 
-      console.log('Preparing exam data for student...');
+      logger.info('Preparing exam data for student...');
       // Return exam data without correct answers
       const sanitizedQuestions = decryptedData.questions.map(q => ({
         text: q.question,
@@ -93,64 +99,64 @@ const startExam = asyncHandler(async (req, res) => {
       });
 
     } catch (error) {
-      console.error('Exam start error:', error);
+      logger.error('Exam preparation error:', error);
       res.status(500);
-      throw new Error('Failed to start exam: ' + error.message);
+      throw new Error('Failed to prepare exam content');
     }
 
   } catch (error) {
-    console.error('Start exam error:', error);
+    logger.error('Start exam error:', error);
     res.status(error.status || 500);
     throw new Error(`Failed to start exam: ${error.message}`);
   }
 });
 
-// Submit exam
+// Enhanced exam submission with detailed validation
 const submitExam = asyncHandler(async (req, res) => {
   const { examId, answers } = req.body;
 
   try {
-    console.log('Submitting exam:', { examId, answers });
-    
+    logger.info(`Processing exam submission for exam: ${examId}`);
+
     const exam = await FileRequest.findById(examId);
     if (!exam) {
       res.status(404);
       throw new Error('Exam not found');
     }
 
-    // Get the decrypted exam data to check answers
+    const now = new Date();
+    
+    // Validate submission time
+    if (now > new Date(exam.endDate)) {
+      throw new Error('Exam submission period has ended');
+    }
+
+    // Get and decrypt exam data
     const response = await axios.get(`https://gateway.pinata.cloud/ipfs/${exam.ipfsHash}`);
     const decryptedData = decryptFromIPFS(response.data, exam.ipfsEncryptionKey);
 
-    // Calculate score
+    // Calculate score with detailed analysis
     let correctAnswers = 0;
     const totalQuestions = decryptedData.questions.length;
+    const answerAnalysis = [];
 
-    // Check each answer
     Object.entries(answers).forEach(([questionIndex, studentAnswer]) => {
       const question = decryptedData.questions[parseInt(questionIndex)];
-      const correctAnswer = question.correctAnswer;
+      const isCorrect = studentAnswer === question.correctAnswer;
       
-      console.log(`Question ${parseInt(questionIndex) + 1}:`, {
-        studentAnswer,
-        correctAnswer,
-        isCorrect: studentAnswer === correctAnswer
-      });
+      if (isCorrect) correctAnswers++;
 
-      if (studentAnswer === correctAnswer) {
-        correctAnswers++;
-      }
+      answerAnalysis.push({
+        questionId: question.id,
+        correct: isCorrect,
+        studentAnswer,
+        correctAnswer: question.correctAnswer
+      });
     });
 
     const score = (correctAnswers / totalQuestions) * 100;
 
-    console.log('Score calculation:', {
-      correctAnswers,
-      totalQuestions,
-      score
-    });
-
-    // Create and save exam response
+    // Create exam response with detailed data
     const examResponse = await ExamResponse.create({
       student: req.user._id,
       exam: examId,
@@ -158,43 +164,60 @@ const submitExam = asyncHandler(async (req, res) => {
       score,
       correctAnswers,
       totalQuestions,
-      submittedAt: Date.now()
+      answerAnalysis,
+      submittedAt: now
     });
 
-    console.log('Created exam response:', examResponse);
+    // Send immediate feedback email
+    try {
+      await sendEmail({
+        to: req.user.email,
+        subject: `Exam Submission Confirmation - ${exam.examName}`,
+        html: examResultTemplate({
+          examName: exam.examName,
+          score,
+          correctAnswers,
+          totalQuestions,
+          submittedAt: examResponse.submittedAt,
+          dashboardUrl: `${process.env.FRONTEND_URL}/student/results/${examResponse._id}`
+        })
+      });
+      
+      logger.info('Result email sent successfully');
+    } catch (emailError) {
+      logger.error('Email sending error:', emailError);
+    }
 
-    // Return response
-    const completeResponse = {
+    res.json({
       message: 'Exam submitted successfully',
       examResponse: {
         _id: examResponse._id,
         exam: {
           _id: exam._id,
           examName: exam.examName,
-          resultsReleased: exam.resultsReleased || false
+          resultsReleased: exam.resultsReleased
         },
         score,
         correctAnswers,
         totalQuestions,
         submittedAt: examResponse.submittedAt
       }
-    };
-
-    console.log('Sending response:', completeResponse);
-    res.json(completeResponse);
+    });
 
   } catch (error) {
-    console.error('Submit exam error:', error);
+    logger.error('Submit exam error:', error);
     res.status(500);
     throw new Error('Failed to submit exam');
   }
 });
 
-// Release results
+// Enhanced results release with batch processing
 const releaseResults = asyncHandler(async (req, res) => {
   const { examId } = req.params;
 
   try {
+    logger.info(`Releasing results for exam: ${examId}`);
+
     const exam = await FileRequest.findOne({
       _id: examId,
       institute: req.user._id
@@ -208,39 +231,45 @@ const releaseResults = asyncHandler(async (req, res) => {
     exam.resultsReleased = true;
     await exam.save();
 
-    // Get all responses for this exam with student details
+    // Get all responses with student details
     const responses = await ExamResponse.find({ exam: examId })
-      .populate('student', 'email name');
+      .populate('student', 'email name')
+      .lean();
 
-    // Send email notifications
-    for (const response of responses) {
-      if (response.student && response.student.email) {
-        try {
-          await sendEmail({
-            to: response.student.email,
-            subject: `Exam Results Available - ${exam.examName}`,
-            text: `
-              Your results for ${exam.examName} are now available.
-              
-              Score: ${response.score.toFixed(2)}%
-              Correct Answers: ${response.correctAnswers} out of ${response.totalQuestions}
-              
-              You can view your detailed results on the student dashboard.
-            `
-          });
-        } catch (emailError) {
-          console.error('Email notification error:', emailError);
+    // Process email notifications in batches
+    const batchSize = 50;
+    for (let i = 0; i < responses.length; i += batchSize) {
+      const batch = responses.slice(i, i + batchSize);
+      for (const response of batch) {
+        if (response.student && response.student.email) {
+          try {
+            await sendEmail({
+              to: response.student.email,
+              subject: `Exam Results Available - ${exam.examName}`,
+              html: examResultTemplate({
+                examName: exam.examName,
+                score: response.score,
+                correctAnswers: response.correctAnswers,
+                totalQuestions: response.totalQuestions,
+                submittedAt: response.submittedAt,
+                dashboardUrl: `${process.env.FRONTEND_URL}/student/results/${response._id}`
+              })
+            });
+          } catch (emailError) {
+            logger.error('Email notification error:', emailError);
+          }
         }
       }
     }
 
-    res.json({ 
+    res.json({
       message: 'Results released successfully',
-      examId: exam._id
+      examId: exam._id,
+      totalNotified: responses.length
     });
 
   } catch (error) {
-    console.error('Release results error:', error);
+    logger.error('Release results error:', error);
     res.status(500);
     throw new Error('Failed to release results');
   }
@@ -249,7 +278,7 @@ const releaseResults = asyncHandler(async (req, res) => {
 // Get my results (for student)
 const getMyResults = asyncHandler(async (req, res) => {
   try {
-    console.log('Fetching results for student:', req.user._id);
+    logger.info('Fetching results for student:', req.user._id);
     
     const results = await ExamResponse.find({ 
       student: req.user._id 
@@ -262,7 +291,7 @@ const getMyResults = asyncHandler(async (req, res) => {
     .sort('-submittedAt')
     .lean();
 
-    console.log('Raw results from DB:', results);
+    logger.info('Raw results from DB:', results);
 
     const formattedResults = results.map(result => ({
       _id: result._id,
@@ -276,10 +305,10 @@ const getMyResults = asyncHandler(async (req, res) => {
       submittedAt: result.submittedAt
     }));
 
-    console.log('Formatted results:', formattedResults);
+    logger.info('Formatted results:', formattedResults);
     res.json(formattedResults);
   } catch (error) {
-    console.error('Get results error:', error);
+    logger.error('Get results error:', error);
     res.status(500);
     throw new Error('Failed to fetch exam results');
   }
@@ -307,7 +336,7 @@ const getExamResults = asyncHandler(async (req, res) => {
 
     res.json(results);
   } catch (error) {
-    console.error('Get exam results error:', error);
+    logger.error('Get exam results error:', error);
     res.status(500);
     throw new Error('Failed to fetch exam results');
   }

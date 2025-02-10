@@ -1,34 +1,32 @@
-import { Container } from 'react-bootstrap';
-import { Outlet, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
-// Protected route components
-const PrivateRoute = ({ children, allowedRoles }) => {
-  const { userInfo } = useSelector((state) => state.auth);
-
-  if (!userInfo) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (allowedRoles && !allowedRoles.includes(userInfo.userType)) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
-
-const App = () => {
+// Create a separate component for the themed content
+const ThemedApp = () => {
+  const { isDarkMode } = useTheme();
+  
   return (
-    <>
+    <div className={`min-h-screen transition-colors duration-300 ${
+      isDarkMode ? 'bg-[#0A0F1C]' : 'bg-gray-50'
+    }`}>
       <Header />
       <ToastContainer />
-      <Container className='my-2'>
+      <main className="overflow-hidden">
         <Outlet />
-      </Container>
-    </>
+      </main>
+    </div>
+  );
+};
+
+// Main App component
+const App = () => {
+  return (
+    <ThemeProvider>
+      <ThemedApp />
+    </ThemeProvider>
   );
 };
 

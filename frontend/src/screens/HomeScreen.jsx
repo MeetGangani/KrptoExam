@@ -8,7 +8,7 @@ const HomeScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       {userInfo ? (
         <>
           {userInfo.userType === 'admin' && <AdminDashboard />}

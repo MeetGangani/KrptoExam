@@ -18,6 +18,8 @@
     "@reduxjs/toolkit": "^1.9.5",
     "axios": "^1.7.9",
     "framer-motion": "^12.4.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "pdfjs-dist": "^4.10.38",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

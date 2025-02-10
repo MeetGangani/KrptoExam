@@ -1,7 +1,6 @@
 import path from 'path';
 import express from 'express';
 import dotenv from 'dotenv';
-dotenv.config();
 import connectDB from './config/db.js';
 import cookieParser from 'cookie-parser';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -11,8 +10,11 @@ import fileUploadRoutes from './routes/fileUploadRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import examRoutes from './routes/examRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import passport from 'passport';
+import session from 'express-session';
+import User from './models/userModel.js';
 
-const port = process.env.PORT || 5000;
+dotenv.config();
 
 connectDB();
 
@@ -22,6 +24,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
+});
 
 app.use('/api/users', userRoutes);
 app.use('/api/files', fileRoutes);
@@ -45,5 +68,7 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(notFound);
 app.use(errorHandler);
+
+const port = process.env.PORT || 5000;
 
 app.listen(port, () => console.log(`Server started on port ${port}`));

@@ -1,6 +1,91 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Passport serialization
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+});
+
+// Google OAuth configuration
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: '/api/users/auth/google/callback',
+      proxy: true
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        // Check if user already exists
+        let user = await User.findOne({ email: profile.emails[0].value });
+
+        if (!user) {
+          // Create new user if doesn't exist
+          user = await User.create({
+            name: profile.displayName,
+            email: profile.emails[0].value,
+            password: 'google-auth', // You might want to handle this differently
+            userType: 'student',
+          });
+        }
+
+        return done(null, user);
+      } catch (error) {
+        return done(error, null);
+      }
+    }
+  )
+);
+
+// Google Auth Routes
+const googleAuth = passport.authenticate('google', {
+  scope: ['profile', 'email'],
+  prompt: 'select_account'
+});
+
+const googleAuthCallback = asyncHandler(async (req, res) => {
+  try {
+    if (!req.user) {
+      throw new Error('Authentication failed');
+    }
+    
+    // Generate token for the authenticated user
+    generateToken(res, req.user._id);
+    
+    // Set user info in a cookie that frontend can read
+    res.cookie('userInfo', JSON.stringify({
+      _id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      userType: req.user.userType,
+    }), {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      path: '/',
+    });
+    
+    // Redirect to frontend with success parameter
+    res.redirect('http://localhost:3000/?loginSuccess=true');
+  } catch (error) {
+    console.error('Google auth callback error:', error);
+    res.redirect('http://localhost:3000/login?error=auth_failed');
+  }
+});
 
 // @desc    Auth user & get token
 // @route   POST /api/users/auth
@@ -118,10 +203,13 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 });
+
 export {
   authUser,
   registerUser,
   logoutUser,
   getUserProfile,
   updateUserProfile,
+  googleAuth,
+  googleAuthCallback,
 };

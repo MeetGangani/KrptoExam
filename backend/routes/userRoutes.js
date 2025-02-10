@@ -5,10 +5,14 @@ import {
   logoutUser,
   getUserProfile,
   updateUserProfile,
+  googleAuth,
+  googleAuthCallback,
 } from '../controllers/userController.js';
 import { protect, adminOnly, instituteOnly } from '../middleware/authMiddleware.js';
+import passport from 'passport';
 
 const router = express.Router();
+
 
 router.post('/', registerUser);
 router.post('/auth', authUser);
@@ -26,5 +30,18 @@ router.get('/admin-only', protect, adminOnly, (req, res) => {
 router.get('/institute-only', protect, instituteOnly, (req, res) => {
   res.json({ message: 'Institute access granted' });
 });
+
+router.get('/auth/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'],
+  prompt: 'select_account'
+}));
+
+router.get('/auth/google/callback', 
+  passport.authenticate('google', { 
+    failureRedirect: 'http://localhost:3000/login',
+    session: false 
+  }),
+  googleAuthCallback
+);
 
 export default router;

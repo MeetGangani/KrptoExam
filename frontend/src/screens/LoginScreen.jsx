@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { FaBrain, FaEnvelope, FaLock } from 'react-icons/fa';
 import Loader from '../components/Loader';
 import { useTheme } from '../context/ThemeContext';
+import { FcGoogle } from 'react-icons/fc';
 
 const LoginScreen = () => {
   const { isDarkMode } = useTheme();
@@ -36,6 +37,10 @@ const LoginScreen = () => {
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
+  };
+
+  const handleGoogleSignIn = () => {
+    window.location.href = 'http://localhost:5000/api/users/auth/google';
   };
 
   return (
@@ -83,6 +88,41 @@ const LoginScreen = () => {
           <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-3 mb-4`}>
             Sign in to your account
           </p>
+        </div>
+
+        <div className="relative mb-6">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleGoogleSignIn}
+            className={`w-full flex items-center justify-center px-4 py-3 border ${
+              isDarkMode 
+                ? 'border-gray-700 bg-gray-800/50 hover:bg-gray-700/50' 
+                : 'border-gray-300 bg-white hover:bg-gray-50'
+            } rounded-lg transition-colors duration-150`}
+          >
+            <FcGoogle className="w-5 h-5 mr-2" />
+            <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+              Continue with Google
+            </span>
+          </motion.button>
+        </div>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className={`w-full border-t ${
+              isDarkMode ? 'border-gray-700' : 'border-gray-300'
+            }`}></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className={`px-2 ${
+              isDarkMode 
+                ? 'bg-gray-900/50 text-gray-400' 
+                : 'bg-white/50 text-gray-500'
+            }`}>
+              Or continue with email
+            </span>
+          </div>
         </div>
 
         <div className="relative">

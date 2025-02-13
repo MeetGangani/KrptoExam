@@ -1,11 +1,16 @@
 import { apiSlice } from './apiSlice';
 const USERS_URL = '/api/users';
 
+console.log("Inside usersApiSlice");
+
+console.log(USERS_URL);
+
+
 export const userApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (data) => ({
-        url: `${USERS_URL}/auth`,
+        url: `https://backend-dfav.onrender.com/api/users/auth`,
         method: 'POST',
         body: data,
       }),

@@ -4,9 +4,6 @@ const apiUrl = import.meta.env.VITE_BACKEND_URI;
 
 console.log("Inside usersApiSlice");
 
-console.log(USERS_URL);
-
-
 export const userApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({

@@ -1,5 +1,6 @@
 import { apiSlice } from './apiSlice';
-const USERS_URL = '/api/users';
+
+const apiUrl = import.meta.env.VITE_BACKEND_URI;
 
 console.log("Inside usersApiSlice");
 
@@ -10,27 +11,28 @@ export const userApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (data) => ({
-        url: `https://backend-dfav.onrender.com/api/users/auth`,
+        url: `${apiUrl}/api/users/auth`,
         method: 'POST',
         body: data,
+         
       }),
     }),
     logout: builder.mutation({
       query: () => ({
-        url: `${USERS_URL}/logout`,
+        url: `${apiUrl}/logout`,
         method: 'POST',
       }),
     }),
     register: builder.mutation({
       query: (data) => ({
-        url: `${USERS_URL}`,
+        url: `${apiUrl}`,
         method: 'POST',
         body: data,
       }),
     }),
     updateUser: builder.mutation({
       query: (data) => ({
-        url: `${USERS_URL}/profile`,
+        url: `${apiUrl}/profile`,
         method: 'PUT',
         body: data,
       }),

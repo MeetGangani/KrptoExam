@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRegisterMutation } from '../slices/usersApiSlice';
 import { toast } from 'react-toastify';
-import Loader from '../components/Loader';
 import AdminUserCreate from './AdminUserCreate';
 import axios from 'axios';
 import { useTheme } from '../context/ThemeContext';

@@ -10,6 +10,8 @@ import Loader from '../components/Loader';
 import { useTheme } from '../context/ThemeContext';
 import { FcGoogle } from 'react-icons/fc';
 
+
+
 const LoginScreen = () => {
   const { isDarkMode } = useTheme();
   const [email, setEmail] = useState('');
@@ -40,7 +42,7 @@ const LoginScreen = () => {
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = 'http://localhost:5000/api/users/auth/google';
+    window.location.href = `${process.env.BACKEND_URI}/api/users/auth/google`;
   };
 
   return (

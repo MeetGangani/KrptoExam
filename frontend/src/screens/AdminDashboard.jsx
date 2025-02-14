@@ -6,6 +6,8 @@ import axios from 'axios';
 import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
 
+const apiUrl = import.meta.env.VITE_BACKEND_URI;
+
 const AdminDashboard = () => {
   const { isDarkMode } = useTheme();
   const [name, setName] = useState('');
@@ -34,7 +36,7 @@ const AdminDashboard = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get('/api/admin/requests');
+      const response = await axios.get(`${apiUrl}/api/admin/requests`);
       setRequests(response.data);
       setError(null);
     } catch (error) {
@@ -46,7 +48,7 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get('/api/admin/dashboard');
+      const response = await axios.get(`${apiUrl}/api/admin/dashboard`);
       setStats(response.data);
       setError(null);
     } catch (error) {
@@ -104,7 +106,7 @@ const AdminDashboard = () => {
         setProcessingStatus('Processing rejection...');
       }
       
-      const response = await axios.put(`/api/admin/requests/${selectedRequest._id}`, {
+      const response = await axios.put(`${apiUrl}/api/admin/requests/${selectedRequest._id}`, {
         status,
         adminComment
       });

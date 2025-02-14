@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
 
+const apiUrl = import.meta.env.VITE_BACKEND_URI;
+
 const InstituteDashboard = () => {
   const { isDarkMode } = useTheme();
   const [file, setFile] = useState(null);
@@ -36,7 +38,7 @@ const InstituteDashboard = () => {
 
   const fetchUploads = async () => {
     try {
-      const response = await axios.get('/api/upload/my-uploads');
+      const response = await axios.get(`${apiUrl}/api/upload/my-uploads`);
       setUploads(response.data);
     } catch (error) {
       console.error('Error fetching uploads:', error);
@@ -93,7 +95,7 @@ const InstituteDashboard = () => {
           formData.append('examName', examName);
           formData.append('description', description);
 
-          await axios.post('/api/upload', formData, {
+          await axios.post(`${apiUrl}/api/upload`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
@@ -126,7 +128,7 @@ const InstituteDashboard = () => {
   const handleViewResults = async (examId) => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/exams/results/${examId}`);
+      const response = await axios.get(`${apiUrl}/api/exams/results/${examId}`);
       setExamResults(response.data);
       setSelectedExam(uploads.find(u => u._id === examId));
       setShowResultsModal(true);
@@ -141,11 +143,11 @@ const InstituteDashboard = () => {
   const handleReleaseResults = async (examId) => {
     try {
       setLoading(true);
-      await axios.post(`/api/exams/release/${examId}`);
+      await axios.post(`${apiUrl}/api/exams/release/${examId}`);
       setSuccess('Results released successfully');
       await fetchUploads();
       if (selectedExam?._id === examId) {
-        const response = await axios.get(`/api/exams/results/${examId}`);
+        const response = await axios.get(`${apiUrl}/api/exams/results/${examId}`);
         setExamResults(response.data);
       }
     } catch (error) {

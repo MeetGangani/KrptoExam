@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useTheme } from '../context/ThemeContext';
-
-const apiUrl = import.meta.env.VITE_BACKEND_URI;
+import axiosInstance from '../utils/axiosConfig';
 
 const StudentDashboard = () => {
   const { isDarkMode } = useTheme();
@@ -45,7 +43,7 @@ const StudentDashboard = () => {
 
   const fetchExams = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/api/exams/available`);
+      const response = await axiosInstance.get('/api/exams/available');
       setAvailableExams(response.data);
       setError(null);
     } catch (error) {
@@ -56,7 +54,7 @@ const StudentDashboard = () => {
 
   const fetchResults = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/api/exams/my-results`);
+      const response = await axiosInstance.get('/api/exams/my-results');
       setExamResults(response.data || []);
       setError(null);
     } catch (error) {
@@ -141,7 +139,7 @@ const StudentDashboard = () => {
       setError(null);
       
       console.log('Starting exam with IPFS hash:', ipfsHash.trim());
-      const response = await axios.post(`${apiUrl}/api/exams/start`, { 
+      const response = await axiosInstance.post('/api/exams/start', { 
         ipfsHash: ipfsHash.trim() 
       });
 
@@ -168,7 +166,7 @@ const StudentDashboard = () => {
 
     try {
       setExamSubmitting(true);
-      const response = await axios.post(`${apiUrl}/api/exams/submit`, {
+      const response = await axiosInstance.post('/api/exams/submit', {
         examId: currentExam._id,
         answers
       });

@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react';
 import { useRegisterMutation } from '../slices/usersApiSlice';
 import { toast } from 'react-toastify';
 import AdminUserCreate from './AdminUserCreate';
-import axios from 'axios';
 import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
-
-const apiUrl = import.meta.env.VITE_BACKEND_URI;
+import axiosInstance from '../utils/axiosConfig';
 
 const AdminDashboard = () => {
   const { isDarkMode } = useTheme();
@@ -36,7 +34,7 @@ const AdminDashboard = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/api/admin/requests`);
+      const response = await axiosInstance.get('/api/admin/requests');
       setRequests(response.data);
       setError(null);
     } catch (error) {
@@ -48,7 +46,7 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/api/admin/dashboard`);
+      const response = await axiosInstance.get('/api/admin/dashboard');
       setStats(response.data);
       setError(null);
     } catch (error) {
@@ -106,7 +104,7 @@ const AdminDashboard = () => {
         setProcessingStatus('Processing rejection...');
       }
       
-      const response = await axios.put(`${apiUrl}/api/admin/requests/${selectedRequest._id}`, {
+      const response = await axiosInstance.put(`/api/admin/requests/${selectedRequest._id}`, {
         status,
         adminComment
       });

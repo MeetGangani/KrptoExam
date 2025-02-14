@@ -81,7 +81,6 @@ const InstituteDashboard = () => {
     setSuccess(null);
 
     try {
-      // First validate the JSON content
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
@@ -95,14 +94,14 @@ const InstituteDashboard = () => {
 
           await axiosInstance.post('/api/upload', formData, {
             headers: {
+              ...axiosInstance.defaults.headers,
               'Content-Type': 'multipart/form-data',
             },
           });
 
           setSuccess('Questions uploaded successfully!');
           fetchUploads();
-          resetForm(); // Reset form after successful upload
-          
+          resetForm();
         } catch (error) {
           setError(error.message);
         } finally {

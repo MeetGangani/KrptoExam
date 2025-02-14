@@ -10,6 +10,8 @@ import { FcGoogle } from 'react-icons/fc';
 import Loader from '../components/Loader';
 import { useTheme } from '../context/ThemeContext';
 
+const apiUrl = import.meta.env.VITE_BACKEND_URI;
+
 const RegisterScreen = () => {
   const { isDarkMode } = useTheme();
   const [name, setName] = useState('');
@@ -92,7 +94,7 @@ const RegisterScreen = () => {
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = 'http://localhost:5000/api/users/auth/google';
+    window.location.href = `${apiUrl}/api/users/auth/google`;
   };
 
   return (
